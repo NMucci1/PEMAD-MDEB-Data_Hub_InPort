@@ -1,0 +1,50 @@
+name: Update InPort
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+  # Schedule: Runs once a month
+  #schedule:
+  #  - cron: '0 0 1 * *'
+   
+jobs:
+  build:
+    # This would need to be changed if using a self-hosted runner
+    runs-on: ubuntu-latest
+    #runs-on: [self-hosted]
+    
+    # Set a timeout so it doesn't hang indefinitely if the DB is unreachable
+    timeout-minutes: 15 
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' # Caches dependencies to speed up future runs
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # Run Script
+      - name: Execute Python script
+        run: python python/InPort_Update.py
+        env:
+          # Access secrets
+          INPORT_USERNAME: ${{ secrets.INPORT_USERNAME }}
+          INPORT_PASSWORD: ${{ secrets.INPORT_PASSWORD }}
+          INPORT_SESSION_URL: ${{ secrets.INPORT_SESSION_URL }}
+          INPORT_XML_URL: ${{ secrets.INPORT_XML_URL }}
+          # Oracle parameters
+          TNS_NAME: ${{ secrets.TNS_NAME }}
+          ORACLE_USERNAME: ${{ secrets.ORACLE_USERNAME }}
+          ORACLE_PASSWORD: ${{ secrets.ORACLE_PASSWORD }}
+          SCHEMA: ${{ secrets.SCHEMA }}
+          FTR_TABLE: ${{ secrets.FTR_TABLE }}
